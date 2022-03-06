@@ -25,6 +25,7 @@ function initClient() {
     gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);         //Handle the initial sign-in state.        
     updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());        
     // authorizeButton.onclick = handleAuthClick;
+    gapi.auth2.getAuthInstance().signIn();
     // signoutButton.onclick = handleSignoutClick;  
   });
 }
