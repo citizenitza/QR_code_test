@@ -68,6 +68,10 @@ function listOrders() {
         }
     }
   }, 
+
+  function clearOrders(){
+
+  },
   
   function(response) {
      console.log(response);
