@@ -1,86 +1,49 @@
-// Client ID and API key from the Developer Console
-var CLIENT_ID = '673977278968-rsiltbqfvebrh542ociki8j80oaqkbto.apps.googleusercontent.com';
-var API_KEY = 'AIzaSyB-ybvth_3uZufoWf1Wb_I23W4VKZi7WgA';// Array of API discovery doc URLs for APIs used by the quickstart
-var DISCOVERY_DOCS =["https://sheets.googleapis.com/$discovery/rest?version=v4"];//Authorization scopes required by the API; 
+  // Create a new RGraph Sheets object using the spreadsheet's key and
+    // the callback function that creates the chart. The RGraph.Sheets object is
+    // passed to the callback function as an argument so it doesn't need to be
+    // assigned to a variable when it's created
+    RGraph.Sheets('14Z_s-FR-YUCb5gX43UVwEtaYuCfGCQj4xo3HdwgkVZI', function (sheet)
+    {
+        // Get the labels from the spreadsheet by retrieving part of the first row
+        var labels = sheet.get('A2:A7');
 
-var SCOPES = "https://www.googleapis.com/auth/spreadsheets.readonly"; 
-var authorizeButton = document.getElementById('authorize-button');
-var signoutButton = document.getElementById('signout-button');
-var username = document.getElementById('username');//Entry point, called to load the auth2 library
+        // Use the column headers (ie the names) as the key
+        var key = sheet.get('B1:E1');
 
-function handleClientLoad() {
-    gapi.load('client:auth2', initClient);
-} 
+        // Get the data from the sheet as the data for the chart
+        var data   = [
+            sheet.get('B2:E2'), // January
+            sheet.get('B3:E3'), // February
+            sheet.get('B4:E4'), // March
+            sheet.get('B5:E5'), // April
+            sheet.get('B6:E6'), // May
+            sheet.get('B7:E7')  // June
+        ];
 
-
-function initClient() {
-  gapi.client.init({
-    apiKey: API_KEY,
-    clientId: CLIENT_ID,
-    discoveryDocs: DISCOVERY_DOCS,
-    scope: SCOPES  
-  }).then(function () {
-    
-    //Listen for sign-in state changes.                    
-    gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);         //Handle the initial sign-in state.        
-    updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());        
-    // authorizeButton.onclick = handleAuthClick;
-    gapi.auth2.getAuthInstance().signIn();
-    // signoutButton.onclick = handleSignoutClick;  
-  });
-}
-
-function updateSigninStatus(isSignedIn) {
-  // clearOrders();
-  if (isSignedIn) {
-    // authorizeButton.style.display = 'none';
-    // signoutButton.style.display = 'block';
-    // listOrders();
-  } else {
-    // authorizeButton.style.display = 'block';
-    // signoutButton.style.display = 'none';
-  }
-} 
-
-function handleAuthClick(event) {
-  gapi.auth2.getAuthInstance().signIn();
-}
-
-function handleSignoutClick(event) {
-  gapi.auth2.getAuthInstance().signOut();
-}
-
-
-function listOrders() {
-  gapi.client.sheets.spreadsheets.values.get({
-    spreadsheetId: '14Z_s-FR-YUCb5gX43UVwEtaYuCfGCQj4xo3HdwgkVZI',
-    range: 'order!A1:J',
-  }).then(function(response) {
-    var range = response.result;
-    if (isUserAuthorized()) {
-        var userEmail = getUserEmail();
-        if (userEmail) {
-          if (range.values.length > 0) {
-            for (i = 0; i < range.values.length; i++) {
-              // filter only user’s orders
-              // ! it is not secure to filter orders on client side
-              if (range.values[i][0] === userEmail || i === 0)  {
-                var row = range.values[i];
-                var data = "";
-                for (j = 0; j < row.length; j++) {
-                  data = data + '<td>'+row[j]+'</td>'
-                }
-                $('#table_div > tbody:first').append('<tr>'+ data +'</tr>'); 
-                data = "";
-              }
+        // Create and configure the chart; using the information retrieved above
+        // from the spreadsheet
+        var bar = new RGraph.Bar({
+            id: 'cvs',
+            data: data,
+            options: {
+                backgroundGridVlines: false,
+                backgroundGridBorder: false,
+                xaxisLabels: labels,
+                xaxisLabelsOffsety: 5,
+                colors: ['#A8E6CF','#DCEDC1','#FFD3B6','#FFAAA5'],
+                shadow: false,
+                colorsStroke: 'rgba(0,0,0,0)',
+                yaxis: false,
+                marginLeft: 40,
+                marginBottom: 35,
+                marginRight: 40,
+                key: key,
+                keyBoxed: false,
+                keyPosition: 'margin',
+                keyTextSize: 12,
+                textSize: 12,
+                textAccessible: false,
+                axesColor: '#aaa'
             }
-          }
-        }
-    }
-  }, 
-
-  
-  function(response) {
-     console.log(response);
-  });
-}
+        }).wave();
+    });
