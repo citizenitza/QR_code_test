@@ -1,184 +1,75 @@
+// Client ID and API key from the Developer Console
+var CLIENT_ID = '<YOUR_CLIENT_ID>';
+var API_KEY = '<YOUR_API_KEY>';// Array of API discovery doc URLs for APIs used by the quickstart
+var DISCOVERY_DOCS =["https://sheets.googleapis.com/$discovery/rest?version=v4"];//Authorization scopes required by the API; 
+
+var SCOPES = "https://www.googleapis.com/auth/spreadsheets.readonly"; 
+var authorizeButton = document.getElementById('authorize-button');
+var signoutButton = document.getElementById('signout-button');
+var username = document.getElementById('username');//Entry point, called to load the auth2 library
+
+function handleClientLoad() {
+    gapi.load('client:auth2', initClient);
+} 
 
 
-function main(){
-  doGet();
+function initClient() {
+  gapi.client.init({
+    apiKey: API_KEY,
+    clientId: CLIENT_ID,
+    discoveryDocs: DISCOVERY_DOCS,
+    scope: SCOPES  
+  }).then(function () {
+    
+    //Listen for sign-in state changes.                    
+    gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);         //Handle the initial sign-in state.        
+    updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());        
+    authorizeButton.onclick = handleAuthClick;
+    signoutButton.onclick = handleSignoutClick;  
+  });
 }
 
-function doGet(){
-  var ss = SpreadsheetApp.openById("14Z_s-FR-YUCb5gX43UVwEtaYuCfGCQj4xo3HdwgkVZI");
+function updateSigninStatus(isSignedIn) {
+  clearOrders();
+  if (isSignedIn) {
+    authorizeButton.style.display = 'none';
+    signoutButton.style.display = 'block';
+    listOrders();
+  } else {
+    authorizeButton.style.display = 'block';
+    signoutButton.style.display = 'none';
+  }
+} 
+
+function listOrders() {
+  gapi.client.sheets.spreadsheets.values.get({
+    spreadsheetId: '1WZ34E0cr1q8bfGbH_lqNzZJO5e0vtE1lhVm71L_jSOA',
+    range: 'order!A1:J',
+  }).then(function(response) {
+    var range = response.result;
+    if (isUserAuthorized()) {
+        var userEmail = getUserEmail();
+        if (userEmail) {
+          if (range.values.length > 0) {
+            for (i = 0; i < range.values.length; i++) {
+              // filter only user’s orders
+              // ! it is not secure to filter orders on client side
+              if (range.values[i][0] === userEmail || i === 0)  {
+                var row = range.values[i];
+                var data = "";
+                for (j = 0; j < row.length; j++) {
+                  data = data + '<td>'+row[j]+'</td>'
+                }
+                $('#table_div > tbody:first').append('<tr>'+ data +'</tr>'); 
+                data = "";
+              }
+            }
+          }
+        }
+    }
+  }, 
   
-  return exportJSON(ss);
-}
-
-/* 
- * exportJSON(Spreadsheet) transforms the data in the given sheet to JSON.
- * @params ss - SpreadsheetApp>Spreaddheet Class.
- * @returns Object[] - Array of JSON objects.
-*/ 
-function db_getJSON(ss) {
-  var sheet = ss.getSheetByName(ss);
-  var rowsData = getRowsData(sheet);
-  var result = JSON.stringify(rowsData);
-  Logger.log(result);
-  return result
-}
-
-/* 
- * getRowsData(Sheet) iterates row by row in the sheer and returns an array of objects.
- * Each object contains all the data for a given row, indexed by its normalized column name.
- * @params sheet - SpreadsheetApp>Sheet Class, the sheet object that contains the data to be processed.
- * @returns Object[] - an Array of objects with the headers as keys.
-*/ 
-function getRowsData(sheet) {
-  var headersRange = sheet.getRange(1, 1, sheet.getFrozenRows(), sheet.getMaxColumns());
-  var headers = headersRange.getValues()[0];
-  var dataRange = sheet.getRange(sheet.getFrozenRows()+1, 1, sheet.getMaxRows(), sheet.getMaxColumns());
-  return getObjects(dataRange.getValues(), normalizeHeaders(headers));
-}
-
-/* 
- * getObjects(String[], String[]), For every row in the data, generates an object.  
- * Names of object fields are defined in keys.
- * @params data - JavaScript 2d array.
- * @params keys - Array of Strings that define the property names for the objects to create.
- * @returns Object[] - JSON, an Array of objects.
-*/ 
-function getObjects(data, keys) {
-  var objects = [];
-  for (var i = 0; i < data.length; ++i) {
-    var object = {};
-    var hasData = false;
-    for (var j = 0; j < data[i].length; ++j) {
-      var cellData = data[i][j];
-      if (isCellEmpty(cellData)) {
-        continue;
-      }
-      object[keys[j]] = cellData;
-      hasData = true;
-    }
-    if (hasData) {
-      objects.push(object);
-    }
-  }
-  return objects;
-}
-
-/* 
- * getColumnsData(Sheet Object, RangeElement[], int) iterates column by column in the input range and returns an array of objects.
- * Each object contains all the data for a given column, indexed by its normalized row name.
- * @params sheet - the sheet object that contains the data to be processed
- * @params range - the exact range of cells where the data is stored
- * @params (optional)rowHeadersColumnIndex - specifies the column number where the row names are stored.
- * @returns Object[] - an Array of objects.
-*/ 
-function getColumnsData(sheet, range, rowHeadersColumnIndex) {
-  rowHeadersColumnIndex = rowHeadersColumnIndex || range.getColumnIndex() - 1;
-  var headersTmp = sheet.getRange(range.getRow(), rowHeadersColumnIndex, range.getNumRows(), 1).getValues();
-  var headers = normalizeHeaders(arrayTranspose(headersTmp)[0]);
-  return getObjects(arrayTranspose(range.getValues()), headers);
-}
-
-/* 
- * normalizeHeaders(String[]) Returns an Array of normalized Strings.
- * @params headers - Array of raw headers
- * @returns String[] - Array of normalized headers.
-*/ 
-function normalizeHeaders(headers) {
-  var keys = [];
-  for (var i = 0; i < headers.length; ++i) {
-    var key = normalizeHeader(headers[i]);
-    if (key.length > 0) {
-      keys.push(key);
-    }
-  }
-  return keys;
-}
-
-/* 
- * normalizeHeaders(String[]) Normalizes a string by removing all alphanumeric characters 
- * Uses camelCase to separate words. The output will always start with a lower case letter.
- * This function is designed to produce JavaScript object property names.
- * @params headers - Array of raw headers
- * @returns String[] - Array of normalized headers.
- * Examples:
- *   "First Name" -> "firstName"
- *   "Market Cap (millions) -> "marketCapMillions
- *   "1 number at the beginning is ignored" -> "numberAtTheBeginningIsIgnored"
-*/ 
-function normalizeHeader(header) {
-  var key = "";
-  var upperCase = false;
-  for (var i = 0; i < header.length; ++i) {
-    var letter = header[i];
-    if (letter == " " && key.length > 0) {
-      upperCase = true;
-      continue;
-    }
-    if (!isAlnum(letter)) {
-      continue;
-    }
-    if (key.length == 0 && isDigit(letter)) {
-      continue; // first character must be a letter
-    }
-    if (upperCase) {
-      upperCase = false;
-      key += letter.toUpperCase();
-    } else {
-      key += letter.toLowerCase();
-    }
-  }
-  return key;
-}
-
-/* 
- * isCellEmpty(String) Returns true if the cell where cellData was read from is empty.
- * @params cellData - an SpreadsheetApp Cell Object. 
- * @returns boolean - false if the string is empty. 
-*/ 
-function isCellEmpty(cellData) {
-  return typeof(cellData) == "string" && cellData == "";
-}
-
-/* 
- * isAlnum(char) Returns true if the character char is alphabetical, false otherwise.
- * @params char - a single character.
- * @returns boolean.
-*/ 
-function isAlnum(char) {
-  return char >= 'A' && char <= 'Z' ||
-    char >= 'a' && char <= 'z' ||
-    isDigit(char);
-}
-
-/* 
- * isDigit(char) Returns true if the character char is a digit, false otherwise.
- * @params char - a single character.
- * @returns boolean.
-*/ 
-function isDigit(char) {
-  return char >= '0' && char <= '9';
-}
-
-/* 
- * isDigit(String[]) returns the transposed table of given 2d Array.
- * @params data - JavaScript 2d array.
- * @returns String[] - transposed 2d array.
- * Example: 
- *     arrayTranspose([[1,2,3],[4,5,6]]) returns [[1,4],[2,5],[3,6]]
-*/ 
-function arrayTranspose(data) {
-  if (data.length == 0 || data[0].length == 0) {
-    return null;
-  }
-  var ret = [];
-  for (var i = 0; i < data[0].length; ++i) {
-    ret.push([]);
-  }
-
-  for (var i = 0; i < data.length; ++i) {
-    for (var j = 0; j < data[i].length; ++j) {
-      ret[j][i] = data[i][j];
-    }
-  }
-  return ret;
+  function(response) {
+     console.log(response);
+  });
 }
