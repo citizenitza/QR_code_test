@@ -41,6 +41,15 @@ function updateSigninStatus(isSignedIn) {
   }
 } 
 
+function handleAuthClick(event) {
+  gapi.auth2.getAuthInstance().signIn();
+}
+
+function handleSignoutClick(event) {
+  gapi.auth2.getAuthInstance().signOut();
+}
+
+
 function listOrders() {
   gapi.client.sheets.spreadsheets.values.get({
     spreadsheetId: '14Z_s-FR-YUCb5gX43UVwEtaYuCfGCQj4xo3HdwgkVZI',
