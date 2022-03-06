@@ -22,15 +22,15 @@ function initClient() {
   }).then(function () {
     
     //Listen for sign-in state changes.                    
-    gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);         //Handle the initial sign-in state.        
-    updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());        
-    authorizeButton.onclick = handleAuthClick;
-    signoutButton.onclick = handleSignoutClick;  
+    gapi.auth2.getAuthInstance().isSignedIn.listen();         //Handle the initial sign-in state.        
+    // updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());        
+    // authorizeButton.onclick = handleAuthClick;
+    // signoutButton.onclick = handleSignoutClick;  
   });
 }
 
 function updateSigninStatus(isSignedIn) {
-  clearOrders();
+  // clearOrders();
   if (isSignedIn) {
     authorizeButton.style.display = 'none';
     signoutButton.style.display = 'block';
@@ -69,9 +69,6 @@ function listOrders() {
     }
   }, 
 
-  function clearOrders(){
-
-  },
   
   function(response) {
      console.log(response);
