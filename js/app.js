@@ -22,7 +22,7 @@ function initClient() {
   }).then(function () {
     
     //Listen for sign-in state changes.                    
-    gapi.auth2.getAuthInstance().isSignedIn.listen();         //Handle the initial sign-in state.        
+    gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);         //Handle the initial sign-in state.        
     // updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());        
     // authorizeButton.onclick = handleAuthClick;
     // signoutButton.onclick = handleSignoutClick;  
@@ -34,7 +34,7 @@ function updateSigninStatus(isSignedIn) {
   if (isSignedIn) {
     authorizeButton.style.display = 'none';
     signoutButton.style.display = 'block';
-    listOrders();
+    // listOrders();
   } else {
     authorizeButton.style.display = 'block';
     signoutButton.style.display = 'none';
