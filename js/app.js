@@ -32,12 +32,12 @@ function initClient() {
 function updateSigninStatus(isSignedIn) {
   // clearOrders();
   if (isSignedIn) {
-    authorizeButton.style.display = 'none';
-    signoutButton.style.display = 'block';
+    // authorizeButton.style.display = 'none';
+    // signoutButton.style.display = 'block';
     // listOrders();
   } else {
-    authorizeButton.style.display = 'block';
-    signoutButton.style.display = 'none';
+    // authorizeButton.style.display = 'block';
+    // signoutButton.style.display = 'none';
   }
 } 
 
