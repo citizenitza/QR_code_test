@@ -10,3 +10,12 @@
     float: left;
     padding-left: 10px;
 }
+
+.container{
+    width: 100%;
+    float: left;
+    padding: 10px;
+}
+.Description{
+    margin-top: 20px;
+}

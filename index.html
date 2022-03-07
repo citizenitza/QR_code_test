@@ -6,23 +6,20 @@
 		<meta charset="UTF-8">
 		<link rel="stylesheet" type="text/css" href="css/styles.css" media="all">
 		<!-- Include the sheets library -->
-		<script src="js/RGraph.common.core.js" ></script>
-		<script src="js/RGraph.common.sheets.js"></script>
-		<!-- Include these two RGraph libraries to make the chart -->
-		<!-- <script src="js/RGraph.common.sheets.js" ></script> -->
-		<script src="js/RGraph.bar.js" ></script>
-		<script src="js/app.js"></script>
+		<script type="text/javascript"src="js/RGraph.common.core.js" ></script>
+		<script type="text/javascript" src="js/RGraph.common.sheets.js"></script>
+
+		<script type="text/javascript" src="js/app.js"></script>
+		<script type="text/javascript" src="js/jquery.min.js"></script>
+		<script type="text/javascript" src="js/qrcode.js"></script>
 		<!-- <script async defer src="https://apis.google.com/js/api.js"></script> -->
+		<script src="js/app.js"></script>
 	</head>
 	
-	<body>
-		…
-		<button id=”test-button” class=”btn-outline-info” onclick="handleClientLoad()">Test</button>
-		<button id=”authorize-button” class=”btn-outline-info” onclick="">Login</button>
-		<button id=”signout-button” class=”btn-outline-info”>Logout</button>
-		<canvas id="cvs" width="800" height="400">
-			[No canvas support]
-		</canvas>
-		<script src="js/app.js"></script>
+	<body onload="LoadQRCodes()">
+		<div class="container" id="QR_Code_wrap">
+
+
+		</div>
 		
 </html> 
